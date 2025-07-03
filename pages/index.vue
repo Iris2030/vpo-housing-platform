@@ -1,17 +1,15 @@
 <script setup>
 import MapView from '~/components/MapView.vue'
 import { ads as initialAds } from '~/data/ads.js'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const categories = [
-  { key: 'schools', label: '🏫 Школи' },
-  { key: 'churches', label: '⛪ Церкви' },
-  { key: 'shelters', label: '🛡️ Укриття' },
-  { key: 'hospitals', label: '🏥 Лікарні' },
-  { key: 'bus_stops', label: '🚌 Зупинки транспорту' },
-  { key: 'supermarkets', label: '🛒 Супермаркети' },
-  // { key: 'museums', label: '🏛️ Музеї' }
-
+{ key: 'schools', label: '🏫 Школи' },
+{ key: 'churches', label: '⛪ Церкви' },
+{ key: 'shelters', label: '🛡️ Укриття' },
+{ key: 'hospitals', label: '🏥 Лікарні' },
+{ key: 'bus_stops', label: '🚌 Зупинки' },
+{ key: 'supermarkets', label: '🛒 Магазини' },
 ]
 
 const allAds = ref([])
@@ -20,11 +18,29 @@ categories.forEach(cat => {
   activeLayers.value[cat.key] = false
 })
 
+const selectedRooms = ref(null)
+const onlyFree = ref(false)
+
 onMounted(() => {
   const saved = JSON.parse(localStorage.getItem('ads') || '[]')
   allAds.value = [...initialAds, ...saved]
 })
+
+const filteredAds = computed(() => {
+  return allAds.value.filter(ad => {
+    if (onlyFree.value && ad.price > 0) return false
+    if (selectedRooms.value !== null) {
+      if (selectedRooms.value === 4) {
+        if (ad.rooms < 4) return false
+      } else {
+        if (ad.rooms !== selectedRooms.value) return false
+      }
+    }
+    return true
+  })
+})
 </script>
+
 
 <template>
   <div>
@@ -32,16 +48,41 @@ onMounted(() => {
     <p>Проста демонстрація концепту сервісу.</p>
     <NuxtLink to="/search">Знайти житло</NuxtLink> |
     <NuxtLink to="/submit">Додати оголошення</NuxtLink>
-
+    
     <div class="filters-wrapper">
       <div class="filters">
+        <p>Фільтри</p>
         <label v-for="cat in categories" :key="cat.key">
           <input type="checkbox" v-model="activeLayers[cat.key]" />
           {{ cat.label }}
         </label>
+        
+        <div>
+          <p>Житло</p>
+          <label>Кількість кімнат:</label>
+          <select v-model.number="selectedRooms">
+            <option :value="null">Всі</option>
+            <option :value="1">1</option>
+            <option :value="2">2</option>
+            <option :value="3">3</option>
+            <option :value="4">4+</option>
+          </select>
+        </div>
+        
+        <div>
+          <label>
+            <input type="checkbox" v-model="onlyFree" />
+            Безкоштовне
+          </label>
+        </div>
       </div>
-
-      <MapView :ads="allAds" :layers="activeLayers" />
+      
+      
+      <MapView
+      :ads="filteredAds"
+      :layers="activeLayers"
+      :filters="{ rooms: selectedRooms, onlyFree }"
+      />
     </div>
   </div>
 </template>
@@ -63,6 +104,6 @@ onMounted(() => {
 .filters {
   display: flex;
   flex-direction: column;
-  min-width: 150px;
+  min-width: 180px;
 }
 </style>
