@@ -52,15 +52,15 @@ const filteredAds = computed(() => {
     <div class="filters-wrapper">
       <div class="filters">
         <p>Фільтри</p>
-        <label v-for="cat in categories" :key="cat.key">
+        <label class="checkbox" v-for="cat in categories" :key="cat.key">
           <input type="checkbox" v-model="activeLayers[cat.key]" />
           {{ cat.label }}
         </label>
         
         <div>
           <p>Житло</p>
-          <label>Кількість кімнат:</label>
-          <select v-model.number="selectedRooms">
+          <label >Кількість кімнат:</label>
+          <select class="rooms-select"  v-model.number="selectedRooms">
             <option :value="null">Всі</option>
             <option :value="1">1</option>
             <option :value="2">2</option>
@@ -70,7 +70,7 @@ const filteredAds = computed(() => {
         </div>
         
         <div>
-          <label>
+          <label class="checkbox">
             <input type="checkbox" v-model="onlyFree" />
             Безкоштовне
           </label>
@@ -105,5 +105,15 @@ const filteredAds = computed(() => {
   display: flex;
   flex-direction: column;
   min-width: 180px;
+}
+
+.checkbox{
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.rooms-select{
+  margin-top: 8px;
 }
 </style>

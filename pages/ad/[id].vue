@@ -31,10 +31,19 @@ onMounted(async () => {
     <p><strong>Адреса:</strong> {{ ad.address }}</p>
     <p><strong>Телефон:</strong> {{ ad.phone }}</p>
     <p><strong>Координати:</strong> {{ ad.lat.toFixed(4) }}, {{ ad.lng.toFixed(4) }}</p>
-    <NuxtLink to="/">← Назад</NuxtLink>
+    <button class="accept-btn" @click="$emit('contact', ad)">Зв’язатися</button>
+    <br>
+    <NuxtLink class="back" to="/">← Назад</NuxtLink>
   </div>
   <div v-else>
     <p>Оголошення не знайдено.</p>
     <NuxtLink to="/">← Повернутись на головну</NuxtLink>
   </div>
 </template>
+
+<style scoped>
+button{
+margin-bottom: 8px;
+width: 240px;
+}
+</style>
