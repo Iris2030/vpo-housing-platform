@@ -3,8 +3,8 @@ import { onMounted, watch, ref } from 'vue'
 
 const props = defineProps({
   ads: Array,
-  layers: Object, // наприклад { schools: true, churches: false, shelters: true }
-  filters: Object, // { rooms: 1/2/3/4/null, onlyFree: true/false }
+  layers: Object,
+  filters: Object,
   interactive: Boolean
 })
 
@@ -54,31 +54,22 @@ async function fetchPOI(type, bbox) {
     const res = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       body: query,
-      headers: {
-        'Content-Type': 'text/plain'
-      }
+      headers: { 'Content-Type': 'text/plain' }
     })
-    if (!res.ok) return []
-    const data = await res.json()
     
+    if (!res.ok) {
+      console.warn(`[${type}] Overpass API error: ${res.status}`)
+      return []
+    }
+    
+    const data = await res.json()
     return data.elements.map(el => {
-      let lat, lng
-      if (el.type === 'node') {
-        lat = el.lat
-        lng = el.lon
-      } else if (el.center) {
-        lat = el.center.lat
-        lng = el.center.lon
-      }
-      return {
-        id: el.id,
-        name: el.tags?.name || `${tag.value}`,
-        lat,
-        lng
-      }
-    })
+      const lat = el.type === 'node' ? el.lat : el.center?.lat
+      const lng = el.type === 'node' ? el.lon : el.center?.lon
+      return { id: el.id, name: el.tags?.name || type, lat, lng }
+    }).filter(p => p.lat && p.lng)
   } catch (e) {
-    console.error(`Помилка завантаження POI: ${type}`, e)
+    console.error(`POI fetch error for ${type}:`, e)
     return []
   }
 }
@@ -86,65 +77,76 @@ async function fetchPOI(type, bbox) {
 async function renderExtraLayers() {
   if (!map.value) return
   
-  extraMarkers.value.forEach(m => map.value.removeLayer(m))
+  try { map.value.closePopup() } catch (_) {}
+  
+  extraMarkers.value.forEach(marker => {
+    try {
+      marker.off()
+      map.value.removeLayer(marker)
+    } catch (_) {}
+  })
   extraMarkers.value = []
   
   const bbox = getBBox()
   if (!bbox) return
   
-  const iconSize = [30, 30]
-  
-  for (const [key, active] of Object.entries(props.layers)) {
-    if (active) {
-      const pois = await fetchPOI(key, bbox)
+  for (const [key, active] of Object.entries(props.layers || {})) {
+    if (!active) continue
+    
+    const pois = await fetchPOI(key, bbox)
+    
+    const icon = L.icon({
+      iconUrl: `/icons/${key}.png`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30],
+    })
+    
+    pois.forEach(poi => {
+      const marker = L.marker([poi.lat, poi.lng], { icon })
+      extraMarkers.value.push(marker)
       
-      const icon = L.icon({
-        iconUrl: `/icons/${key}.png`,
-        iconSize: iconSize,
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
+      map.value.whenReady(() => {
+        marker.addTo(map.value).bindPopup(poi.name)
       })
-      
-      pois.forEach(poi => {
-        const marker = L.marker([poi.lat, poi.lng], { icon: icon })
-        .addTo(map.value)
-        .bindPopup(poi.name)
-        extraMarkers.value.push(marker)
-      })
-    }
+      extraMarkers.value.push(marker)
+    })
   }
 }
 
 function renderMarkers(L) {
-  if (!map.value) return
+  if (!map.value) return;
   
-  // Видалити старі маркери
-  adMarkers.value.forEach(m => map.value.removeLayer(m))
+  // ⛔️ ЦЕ ОБОВ'ЯЗКОВО
+  try { map.value.closePopup() } catch (_) {}
+  
+  adMarkers.value.forEach(marker => {
+    try {
+      marker.closePopup?.()
+      marker.off()
+      map.value.removeLayer(marker)
+    } catch (_) {}
+  })
   adMarkers.value = []
   
-  const filteredAds = props.ads.filter(ad => {
+  const filtered = props.ads.filter(ad => {
     if (!ad.lat || !ad.lng) return false
     if (props.filters?.onlyFree && ad.price > 0) return false
-    if (props.filters?.rooms) {
-      if (props.filters.rooms === 4) {
-        if (ad.rooms < 4) return false
-      } else {
-        if (ad.rooms !== props.filters.rooms) return false
-      }
-    }
+    if (props.filters?.rooms === 4) return ad.rooms >= 4
+    if (props.filters?.rooms) return ad.rooms === props.filters.rooms
     return true
   })
   
-  filteredAds.forEach(ad => {
+  filtered.forEach(ad => {
     const marker = L.marker([ad.lat, ad.lng])
     .addTo(map.value)
     .bindPopup(`
-  <div style="cursor: pointer;" onclick="window.location.href='/ad/${ad.id}'">
-    <strong>${ad.title}</strong><br>
-    Ціна: ${ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн'}<br>
-    <span style="color: blue; text-decoration: underline;">Переглянути</span>
-  </div>
-`)
+        <div style="cursor:pointer;" onclick="window.location.href='/ad/${ad.id}'">
+          <strong>${ad.title}</strong><br>
+          Ціна: ${ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн'}<br>
+          <span style="color:blue;text-decoration:underline;">Переглянути</span>
+        </div>
+      `)
     adMarkers.value.push(marker)
   })
 }
@@ -153,7 +155,8 @@ onMounted(async () => {
   if (!process.client) return
   const L = await import('leaflet')
   
-  map.value = L.map('map').setView([50.45, 30.52], 6)
+  map.value = L.map('map', { zoomAnimation: false
+  }).setView([50.45, 30.52], 6)
   
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -168,15 +171,12 @@ onMounted(async () => {
   
   if (props.interactive) {
     map.value.on('click', (e) => {
-      const coords = {
-        lat: e.latlng.lat,
-        lng: e.latlng.lng
-      }
+      const coords = { lat: e.latlng.lat, lng: e.latlng.lng }
       
       if (selectedMarker.value) {
         selectedMarker.value.setLatLng([coords.lat, coords.lng])
       } else {
-        selectedMarker.value = L.marker([coords.lat, coords.lng], { draggable: false })
+        selectedMarker.value = L.marker([coords.lat, coords.lng])
         .addTo(map.value)
         .bindPopup('Ваш вибір')
         .openPopup()
