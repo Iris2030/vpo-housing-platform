@@ -1,8 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const ad = ref(null)
 
 const selectedAd = ref(null)
@@ -13,6 +14,9 @@ function handleContact(ad) {
   showModal.value = true
 }
 
+const goBack = () => {
+  router.go(-1)
+}
 onMounted(async () => {
   const allAds = JSON.parse(localStorage.getItem('ads') || '[]')
   
@@ -31,6 +35,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="ad">
+    <button class="back" @click="goBack">← Назад</button>
     <h2>{{ ad.title }}</h2>
     <p><strong>Ціна:</strong> {{ ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн' }}</p>
     <p><strong>Кількість кімнат:</strong> {{ ad.rooms }}</p>
@@ -38,10 +43,13 @@ onMounted(async () => {
     <p><strong>Місто:</strong> {{ ad.city }}</p>
     <p><strong>Адреса:</strong> {{ ad.address }}</p>
     <p><strong>Телефон:</strong> {{ ad.phone }}</p>
-    <p><strong>Координати:</strong> {{ ad.lat.toFixed(4) }}, {{ ad.lng.toFixed(4) }}</p>
+    <p><strong>Опис:</strong> {{ ad.description }}</p>
+    <p><strong>Умови проживання:</strong></p>
+    <ul class="conditions-list">
+        <li v-for="(condition, index) in ad.conditions" :key="index" class="conditions-item">{{ condition }}</li>
+    </ul>
     <button class="accept-btn" @click="handleContact(ad)">Зв’язатися</button>
     <br>
-    <NuxtLink class="back" to="/">← Назад</NuxtLink>
   </div>
   <div v-else>
     <p>Оголошення не знайдено.</p>
@@ -57,14 +65,13 @@ onMounted(async () => {
       </a>
       <button @click="showModal = false" class="accept-btn" style="margin-top: 10px;">Закрити</button>
     </div>
-  </div>
-  
+  </div> 
 </template>
 
 <style scoped>
+
 button{
   margin-bottom: 8px;
-  width: 240px;
 }
 
 
@@ -98,5 +105,21 @@ button{
   text-decoration: none;
 }
 
+.conditions-item{
+  width: auto;
+  border: solid 1px #000;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: #fff;
+}
 
+.conditions-item:not(:last-child){
+  margin-right: 12px;
+  
+}
+
+.conditions-list{
+  padding-left: 0;
+  display: flex;
+}
 </style>

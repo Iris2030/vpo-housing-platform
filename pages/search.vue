@@ -1,13 +1,29 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ads as initialAds } from '~/data/ads.js'
 import AdList from '~/components/AdList.vue'
+
+const router = useRouter()
 
 const maxPrice = ref(null)
 const selectedRegion = ref('')
 const selectedRooms = ref(null)
 const onlyFree = ref(false) // новий фільтр
 const contactAd = ref(null)
+const selectedConditions = ref([])  
+
+
+const conditionsOptions = [
+'Без дітей',
+'Без тварин',
+'Для сімей з дітьми',
+'Для людей з інвалідністю',
+'Можна з тваринами',
+'Для одиноких людей',
+'Тимчасове проживання',
+'Довготривале проживання',
+]
 
 const regions = [
 'Вінницька',
@@ -51,6 +67,13 @@ const filteredAds = computed(() => {
         if (maxPrice.value !== null && ad.price > maxPrice.value) return false
         if (selectedRegion.value && ad.region !== selectedRegion.value) return false
         if (selectedRooms.value && ad.rooms !== selectedRooms.value) return false
+        
+        if (selectedConditions.value.length > 0) {
+            if (!Array.isArray(ad.conditions) || !selectedConditions.value.every(cond => ad.conditions.includes(cond))) {
+                return false
+            }
+        }
+        
         return true
     })
 })
@@ -58,10 +81,15 @@ const filteredAds = computed(() => {
 function contact(ad) {
     contactAd.value = ad
 }
+
+const goBack = () => {
+    router.go(-1)
+}
 </script>
 
 <template>
     <div>
+        <button class="back" @click="goBack">← Назад</button>
         <h2>Пошук житла</h2>
         
         <div class="sigment-wrapper">
@@ -93,6 +121,20 @@ function contact(ad) {
                 <input type="checkbox" v-model="onlyFree" />
                 Лише безкоштовне житло
             </label>
+        </div>
+        
+        <div class="sigment-wrapper">
+            <label class="label">Умови проживання:</label>
+            <div v-for="cond in conditionsOptions" :key="cond" class="checkbox-wrapper">
+                <label class="checkbox">
+                    <input
+                    type="checkbox"
+                    :value="cond"
+                    v-model="selectedConditions"
+                    />
+                    {{ cond }}
+                </label>
+            </div>
         </div>
         
         <!-- Список оголошень -->
@@ -129,43 +171,11 @@ select{
 }
 .label{
     margin-right: 10px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-.checkbox{
-    display: flex;
-    align-items: center;
-}
 .sigment-wrapper{
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     
-}
-input[type="checkbox"] {
-    margin-right: 8px;
-    width: 20px;
-    height: 20px;
-    appearance: none;       
-    -webkit-appearance: none; 
-    background-color: white;
-    border: 2px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-/* Стиль коли вибрано */
-input[type="checkbox"]:checked {
-  background-color: #1e90ff;
-  border-color: #1e90ff;
-}
-
-/* Додай галочку або псевдоелемент */
-input[type="checkbox"]:checked::after {
-  content: "✓";
-  color: white;
-  font-size: 14px;
-  position: relative;
-  left: 4px;
-  top: 1px;
 }
 </style>

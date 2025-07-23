@@ -1,5 +1,8 @@
 <script setup>
 import { onMounted, watch, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   ads: Array,
@@ -141,12 +144,12 @@ function renderMarkers(L) {
     const marker = L.marker([ad.lat, ad.lng])
     .addTo(map.value)
     .bindPopup(`
-        <div style="cursor:pointer;" onclick="window.location.href='/ad/${ad.id}'">
-          <strong>${ad.title}</strong><br>
-          Ціна: ${ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн'}<br>
-          <span style="color:blue;text-decoration:underline;">Переглянути</span>
-        </div>
-      `)
+      <div class="popup-link" data-id="${ad.id}" style="cursor:pointer;">
+        <strong>${ad.title}</strong><br>
+        Ціна: ${ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн'}<br>
+        <span style="color:#1e90ff;text-decoration:underline;">Переглянути</span>
+      </div>
+`)
     adMarkers.value.push(marker)
   })
 }
@@ -155,7 +158,15 @@ onMounted(async () => {
   if (!process.client) return
   const L = await import('leaflet')
   
-  map.value = L.map('map', { zoomAnimation: false
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.popup-link')
+    if (target?.dataset?.id) {
+      e.preventDefault()
+      router.push(`/ad/${target.dataset.id}`)
+    }
+  })
+
+  map.value = L.map('map', { zoomAnimation: true
   }).setView([50.45, 30.52], 6)
   
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

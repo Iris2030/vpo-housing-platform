@@ -1,5 +1,10 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const props = defineProps({ ads: Array })
+const emit = defineEmits(['contact'])
+const router = useRouter()
 
 const selectedAd = ref(null)
 const showModal = ref(false)
@@ -9,36 +14,30 @@ function handleContact(ad) {
   showModal.value = true
 }
 
-defineProps({
-  ads: Array
-})
-
+function goToAd(ad) {
+  router.push(`/ad/${ad.id}`)
+}
 </script>
 
+
 <template>
-  <ul class="list">
-    <li
+  <div class="ad-list">
+    <div
     v-for="ad in ads"
     :key="ad.id"
-    style="margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;"
+    class="ad-card"
+    @click="goToAd(ad)"
+    style="cursor: pointer; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;"
     >
     <h3>{{ ad.title }}</h3>
-    <p><span class="list-text"> Адреса:</span> {{ ad.address }}</p>
-    <p><span class="list-text">Ціна:</span>  {{ ad.price }} грн</p>
-    <p><span class="list-text">Регіон:</span>  {{ ad.region }}</p>
-    <p><span class="list-text">Кімнат:</span>  {{ ad.rooms }}</p>
-    <button class="accept-btn" @click="handleContact(ad)">Зв’язатися</button>
-  </li>
-</ul>
-
-<!-- Модальне вікно -->
-<div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-  <div class="modal">
-    <p><strong>Номер телефону:</strong></p>
-    <a :href="`tel:${selectedAd.phone}`" class="phone-link">
-      📞 {{ selectedAd.phone }}
-    </a>
-    <button @click="showModal = false" class="accept-btn" style="margin-top: 10px;">Закрити</button>
+    <p>Ціна: {{ ad.price === 0 ? 'Безкоштовно' : ad.price + ' грн' }}</p>
+    <p>Область: {{ ad.region }}</p>
+    <p>Кімнат: {{ ad.rooms }}</p>
+    <p>Опис: {{ ad.description }} </p>
+    <p>Умови проживання:</p>
+    <ul class="conditions-list">
+      <li v-for="(condition, index) in ad.conditions" :key="index" class="conditions-item">{{ condition }}</li>
+    </ul>
   </div>
 </div>
 </template>
@@ -51,14 +50,6 @@ defineProps({
 
 .list-text{
   font-weight: 600;
-}
-
-.accept-btn{
-  width: 200px;
-  height: 34px;
-  background-color: #fff;
-  border-radius: 4px;
-  border: 1px solid rgb(170, 169, 169);
 }
 
 .modal-overlay {
@@ -89,6 +80,10 @@ defineProps({
   margin-top: 10px;
   color: #2a73dd;
   text-decoration: none;
+}
+
+.ad-list div{
+  background-color: #fff;
 }
 
 </style>

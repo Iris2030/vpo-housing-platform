@@ -107,12 +107,6 @@ const filteredAds = computed(() => {
   min-width: 180px;
 }
 
-.checkbox{
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-}
-
 .rooms-select{
   margin-top: 8px;
 }

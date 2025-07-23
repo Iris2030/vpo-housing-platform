@@ -1,3 +1,4 @@
+<script setup></script>
 <template>
   <header class="site-header">
     <div class="container">
@@ -13,8 +14,6 @@
     </div>
   </header>
 </template>
-
-<script setup></script>
 
 <style scoped lang="scss">
 .site-header {
