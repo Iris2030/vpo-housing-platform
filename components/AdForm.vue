@@ -353,4 +353,8 @@ textarea{
   padding-left: 0;
   display: flex;
 }
+
+.checkbox{
+  display: inline-block;
+}
 </style>
