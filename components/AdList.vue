@@ -85,5 +85,4 @@ function goToAd(ad) {
 .ad-list div{
   background-color: #fff;
 }
-
 </style>
