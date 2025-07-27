@@ -54,7 +54,7 @@ async function fetchPOI(type, bbox) {
   `
   
   try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
+    const res = await fetch('https://overpass.kumi.systems/api/interpreter', {
       method: 'POST',
       body: query,
       headers: { 'Content-Type': 'text/plain' }
@@ -78,15 +78,22 @@ async function fetchPOI(type, bbox) {
 }
 
 async function renderExtraLayers() {
-  if (!map.value) return
+  if (!map.value || !map.value._loaded) {
+    console.log('Map not loaded yet, skipping renderExtraLayers')
+    return
+  }
   
   try { map.value.closePopup() } catch (_) {}
   
   extraMarkers.value.forEach(marker => {
     try {
+      if (map.value.hasLayer(marker)) {
+        map.value.removeLayer(marker)
+      }
       marker.off()
-      map.value.removeLayer(marker)
-    } catch (_) {}
+    } catch (e) {
+      console.error('Error removing marker:', e)
+    }
   })
   extraMarkers.value = []
   
@@ -96,6 +103,7 @@ async function renderExtraLayers() {
   for (const [key, active] of Object.entries(props.layers || {})) {
     if (!active) continue
     
+    console.log(`Fetching POI for layer ${key}`)
     const pois = await fetchPOI(key, bbox)
     
     const icon = L.icon({
@@ -106,16 +114,14 @@ async function renderExtraLayers() {
     })
     
     pois.forEach(poi => {
-      const marker = L.marker([poi.lat, poi.lng], { icon })
+      const marker = L.marker([poi.lat, poi.lng], { icon }).bindPopup(poi.name, { autoClose: true, closeOnClick: true })
+      marker.addTo(map.value)
       extraMarkers.value.push(marker)
-      
-      map.value.whenReady(() => {
-        marker.addTo(map.value).bindPopup(poi.name)
-      })
-      extraMarkers.value.push(marker)
+      // <-- НЕ відкривати marker.openPopup()
     })
   }
 }
+
 
 function renderMarkers(L) {
   if (!map.value) return;
@@ -166,8 +172,8 @@ onMounted(async () => {
     }
   })
 
-  map.value = L.map('map', { zoomAnimation: true
-  }).setView([50.45, 30.52], 6)
+  map.value = L.map('map', { zoomAnimation: false })   
+    .setView([50.45, 30.52], 6)
   
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -188,9 +194,9 @@ onMounted(async () => {
         selectedMarker.value.setLatLng([coords.lat, coords.lng])
       } else {
         selectedMarker.value = L.marker([coords.lat, coords.lng])
-        .addTo(map.value)
-        .bindPopup('Ваш вибір')
-        .openPopup()
+          .addTo(map.value)
+          .bindPopup('Ваш вибір')
+          .openPopup()
       }
       
       emit('mapClick', coords)
