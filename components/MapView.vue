@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const router = useRouter()
 
@@ -17,6 +19,14 @@ const map = ref(null)
 const selectedMarker = ref(null)
 const extraMarkers = ref([])
 const adMarkers = ref([])
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+  iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
+  shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
+})
 
 function getBBox() {
   if (!map.value) return null
