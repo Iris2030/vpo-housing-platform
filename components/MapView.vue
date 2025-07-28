@@ -89,12 +89,18 @@ async function fetchPOI(type, bbox) {
 
 async function renderExtraLayers() {
   if (!map.value || !map.value._loaded) {
-    console.log('Map not loaded yet, skipping renderExtraLayers')
+    // console.log('Map not loaded yet, skipping renderExtraLayers')
     return
   }
-  
+
+  const MIN_ZOOM_FOR_POI = 13
+  if (map.value.getZoom() < MIN_ZOOM_FOR_POI) {
+    // console.log('Zoom too low, skipping POI rendering')
+    return
+  }
+
   try { map.value.closePopup() } catch (_) {}
-  
+
   extraMarkers.value.forEach(marker => {
     try {
       if (map.value.hasLayer(marker)) {
@@ -106,32 +112,31 @@ async function renderExtraLayers() {
     }
   })
   extraMarkers.value = []
-  
+
   const bbox = getBBox()
   if (!bbox) return
-  
+
   for (const [key, active] of Object.entries(props.layers || {})) {
     if (!active) continue
-    
-    console.log(`Fetching POI for layer ${key}`)
+
+    // console.log(`Fetching POI for layer ${key}`)
     const pois = await fetchPOI(key, bbox)
-    
+
     const icon = L.icon({
       iconUrl: `/icons/${key}.png`,
       iconSize: [30, 30],
       iconAnchor: [15, 30],
       popupAnchor: [0, -30],
     })
-    
+
     pois.forEach(poi => {
-      const marker = L.marker([poi.lat, poi.lng], { icon }).bindPopup(poi.name, { autoClose: true, closeOnClick: true })
-      marker.addTo(map.value)
+      const marker = L.marker([poi.lat, poi.lng], { icon })
+        .bindPopup(poi.name, { autoClose: true, closeOnClick: true })
+        .addTo(map.value)
       extraMarkers.value.push(marker)
-      // <-- НЕ відкривати marker.openPopup()
     })
   }
 }
-
 
 function renderMarkers(L) {
   if (!map.value) return;
