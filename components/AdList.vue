@@ -34,11 +34,11 @@ watch(() => props.ads, (newVal) => {
 })
 </script>
 
-
 <template>
-  <div class="ad-list" v-if="props.ads && props.ads.length">
+  {{ ads }}
+  <div class="ad-list" v-if="ads && ads.length">
     <div
-    v-for="ad in props.ads"
+    v-for="ad in ads"
     :key="ad.id"
     class="ad-card"
     @click="goToAd(ad)"
@@ -105,5 +105,13 @@ height: auto;
 
 .ad-list div{
   background-color: #fff;
+}
+
+.ad-card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin: 1rem;
+  background-color: white;
+  color: black;
 }
 </style>
