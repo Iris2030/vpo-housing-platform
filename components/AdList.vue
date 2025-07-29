@@ -5,6 +5,10 @@ import { useRouter } from 'vue-router'
 const props = defineProps({
   ads: {
     type: Array,
+    default: () => ([
+      { id: 1, title: 'Test Ad 1' },
+      { id: 2, title: 'Test Ad 2' }
+    ])
   }
 })
 const emit = defineEmits(['contact'])
@@ -54,6 +58,12 @@ watch(() => props.ads, (newVal) => {
 </template>
 
 <style>
+
+.ad-list{
+min-height: 400px;
+height: auto;
+}
+
 .list{
   list-style: none;
   padding: 0;
