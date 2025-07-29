@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ads as initialAds } from '~/data/ads.js'
 import AdList from '~/components/AdList.vue'
 
 const router = useRouter()
@@ -33,15 +34,16 @@ const regions = [
   'Хмельницька', 'Черкаська', 'Чернівецька', 'Чернігівська', 'Київ'
 ]
 
-onMounted(async () => {
+onMounted(() => {
+  let saved = []
+
   try {
-    const response = await fetch('/ads.json')
-    if (!response.ok) throw new Error('Failed to load ads')
-    const data = await response.json()
-    allAds.value = data
-  } catch (error) {
-    console.error('Error loading ads:', error)
+    saved = JSON.parse(localStorage.getItem('ads')) || []
+  } catch (e) {
+    saved = []
   }
+
+  allAds.value = saved.length > 0 ? [...initialAds, ...saved] : initialAds
 })
 
 const filteredAds = computed(() => {
