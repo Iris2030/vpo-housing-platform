@@ -4,11 +4,7 @@ import { useRouter } from 'vue-router'
 
 const props = defineProps({
   ads: {
-    type: Array,
-    default: () => ([
-      { id: 1, title: 'Test Ad 1' },
-      { id: 2, title: 'Test Ad 2' }
-    ])
+    type: Array
   }
 })
 const emit = defineEmits(['contact'])
@@ -26,16 +22,9 @@ function goToAd(ad) {
   router.push(`/ad/${ad.id}`)
 }
 
-onMounted( () => {
-  console.log('AdList received ads:', props.ads)
-})
-watch(() => props.ads, (newVal) => {
-  console.log('props.ads', newVal)
-})
 </script>
 
 <template>
-  {{ ads }}
   <div class="ad-list" v-if="ads && ads.length">
     <div
     v-for="ad in ads"
