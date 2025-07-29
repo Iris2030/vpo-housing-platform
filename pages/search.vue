@@ -57,15 +57,7 @@ const regions = [
 const allAds = ref([])
 
 onMounted(() => {
-  let saved = []
-
-  try {
-    saved = JSON.parse(localStorage.getItem('ads')) || []
-  } catch (e) {
-    saved = []
-  }
-
-  allAds.value = saved.length > 0 ? [...initialAds, ...saved] : initialAds
+  allAds.value = initialAds
 })
 
 const filteredAds = computed(() => {
