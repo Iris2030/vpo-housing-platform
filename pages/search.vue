@@ -38,7 +38,6 @@ onMounted(async () => {
     const response = await fetch('/ads.json')
     if (!response.ok) throw new Error('Failed to load ads')
     const data = await response.json()
-    console.log('Fetched ads:', data)   
     allAds.value = data
   } catch (error) {
     console.error('Error loading ads:', error)
@@ -71,9 +70,67 @@ const goBack = () => {
 
 
 <template>
-<div v-for="ad in allAds" :key="ad.id">
-  <p>{{ ad.title }} — {{ ad.price }}</p>
-</div>
+    <div>
+        <button class="back" @click="goBack">← Назад</button>
+        <h2>Пошук житла</h2>
+        
+        <div class="sigment-wrapper">
+            <label class="label">Ціна до:</label>
+            <input class="price-input" type="number" min="0" v-model.number="maxPrice" placeholder="Максимальна ціна" />
+        </div>
+        
+        <div class="sigment-wrapper">
+            <label class="label">Регіон:</label>
+            <select v-model="selectedRegion">
+                <option value="">Всі</option>
+                <option v-for="region in regions" :key="region" :value="region">{{ region }}</option>
+            </select>
+        </div>
+        
+        <div class="sigment-wrapper">
+            <label class="label">Кількість кімнат:</label>
+            <select v-model.number="selectedRooms">
+                <option :value="null">Всі</option>
+                <option :value="1">1</option>
+                <option :value="2">2</option>
+                <option :value="3">3</option>
+                <option :value="4">4</option>
+            </select>
+        </div>
+        
+        <div class="sigment-wrapper">
+            <label class="label checkbox">
+                <input type="checkbox" v-model="onlyFree" />
+                Лише безкоштовне житло
+            </label>
+        </div>
+        
+        <div class="sigment-wrapper">
+            <label class="label">Умови проживання:</label>
+            <div v-for="cond in conditionsOptions" :key="cond" class="checkbox-wrapper">
+                <label class="checkbox">
+                    <input
+                    type="checkbox"
+                    :value="cond"
+                    v-model="selectedConditions"
+                    />
+                    {{ cond }}
+                </label>
+            </div>
+        </div>
+        
+        <!-- Список оголошень -->
+        <AdList :ads="filteredAds" @contact="contact" />
+        <p v-if="filteredAds.length === 0" style="margin-top: 20px;">
+            Оголошень не знайдено за заданими фільтрами.
+        </p>
+        
+        <div v-if="contactAd" style="margin-top: 20px; padding: 10px; background: #eee;">
+            <h4>Контакт для: {{ contactAd.title }}</h4>
+            <p>Телефон: {{ contactAd.phone }}</p>
+            <button @click="contactAd = null">Закрити</button>
+        </div>
+    </div>
 </template>
 
 <style>

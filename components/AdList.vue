@@ -1,8 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const props = defineProps({ ads: Array })
+const props = defineProps({
+  ads: {
+    type: Array,
+    // default: () => []
+  }
+})
 const emit = defineEmits(['contact'])
 const router = useRouter()
 
@@ -17,11 +22,16 @@ function handleContact(ad) {
 function goToAd(ad) {
   router.push(`/ad/${ad.id}`)
 }
+
+onMounted( () => {
+  console.log('AdList received ads:', props.ads)
+})
+
 </script>
 
 
 <template>
-  <div class="ad-list">
+  <div class="ad-list" v-if="ads && ads.length">
     <div
     v-for="ad in ads"
     :key="ad.id"
