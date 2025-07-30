@@ -49,7 +49,6 @@ function goToAd(ad) {
 <style>
 
 .ad-list{
-min-height: 400px;
 height: auto;
 }
 
@@ -96,11 +95,4 @@ height: auto;
   background-color: #fff;
 }
 
-.ad-card {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin: 1rem;
-  background-color: white;
-  color: black;
-}
 </style>
