@@ -110,4 +110,15 @@ const filteredAds = computed(() => {
 .rooms-select{
   margin-top: 8px;
 }
+
+@media screen and (max-width: 460px) {
+  
+  h1{
+    font-size: 24px;
+  }
+  
+  .filters-wrapper{
+    display: grid;
+  }
+}
 </style>

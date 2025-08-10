@@ -103,18 +103,24 @@ body {
   background-color: #fff;
 }
 
-.conditions-item:not(:last-child){
-  margin-right: 12px;
-  
-}
-
 .conditions-list{
   padding-left: 0;
   display: flex;
+  gap: 10px;
 }
 
 .checkbox {
   display: inline-flex;
   align-items: center;
   margin-top: 10px;
+}
+
+@media screen and (max-width: 460px) {
+  .ad-list{
+    font-size: 12px;
+  }
+
+  .conditions-list{
+    gap: 2px;  
+  }
 }

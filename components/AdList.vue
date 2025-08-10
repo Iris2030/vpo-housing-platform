@@ -94,5 +94,4 @@ height: auto;
 .ad-list div{
   background-color: #fff;
 }
-
 </style>

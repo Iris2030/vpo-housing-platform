@@ -162,4 +162,26 @@ select{
     margin-bottom: 20px;
     
 }
+
+@media screen and (max-width: 460px) {
+
+.price-input{
+    width: 140px;
+    height: 30px;
+    text-indent: 2px;
+  }
+
+  select{
+    width: 140px;
+    height: 30px;
+  }
+
+  label.checkbox{
+    font-size: 14px;
+  }
+
+  label.label{
+    font-size: 14px;
+  }
+}
 </style>

@@ -31,6 +31,17 @@
     align-items: center;
   }
 
+  @media screen and (max-width: 460px) {
+  .container {
+    display: grid; 
+    gap: 10px;
+  }
+ 
+  .nav-links a:first-child {
+    margin-left: 0;
+  }
+}
+
   .logo-wrapper{
     display: flex;
     align-items: center;
